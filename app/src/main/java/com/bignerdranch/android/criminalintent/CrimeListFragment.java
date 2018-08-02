@@ -1,5 +1,6 @@
 package com.bignerdranch.android.criminalintent;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -12,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by Ramy on 7/30/2018.
@@ -46,7 +48,9 @@ public class CrimeListFragment extends Fragment {
 
         @Override
         public void onClick(View view){
-            Toast.makeText(getActivity(),mCrime.getTitle() + " clicked!", Toast.LENGTH_LONG).show();
+            //Toast.makeText(getActivity(),mCrime.getTitle() + " clicked!", Toast.LENGTH_LONG).show();
+            Intent intent = CrimeActivity.newIntent(getActivity(),mCrime.getId());
+            startActivity(intent);
         }
     }
 
@@ -93,8 +97,19 @@ public class CrimeListFragment extends Fragment {
             CrimeLab crimeLab = CrimeLab.get(getActivity());
             List<Crime> mCrimes = crimeLab.getCrimes();
 
-            mAdapter = new CrimeAdapter(mCrimes);
-            mCrimeRecyclerView.setAdapter(mAdapter);
+            if (mCrimeRecyclerView.getAdapter() != null)
+            {
+                mCrimeRecyclerView.getAdapter().notifyDataSetChanged();
+            }else {
+                mAdapter = new CrimeAdapter(mCrimes);
+                mCrimeRecyclerView.setAdapter(mAdapter);
+            }
+        }
+
+        @Override
+        public void onResume(){
+            super.onResume();
+            updateUI();
         }
 
 }

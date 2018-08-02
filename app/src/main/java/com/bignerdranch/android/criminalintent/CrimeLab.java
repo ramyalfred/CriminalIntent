@@ -1,6 +1,7 @@
 package com.bignerdranch.android.criminalintent;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,10 +42,13 @@ public class CrimeLab {
 
     public Crime getCrime (UUID id){
         for (Crime crime:mCrimes){
-            if(crime.getId() == id)
+            if(crime.getId().equals(id)){
+                Log.d(getClass().getSimpleName(), "Crime Found");
                 return crime;
+            }
         }
-        return null;
+            Log.d(getClass().getSimpleName(), "Crime Not Found");
+            return null;
     }
 }
 
