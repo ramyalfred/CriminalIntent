@@ -10,10 +10,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.TextView;
-import android.widget.Toast;
+
 
 import java.util.List;
-import java.util.UUID;
+
 
 /**
  * Created by Ramy on 7/30/2018.
@@ -23,6 +23,7 @@ public class CrimeListFragment extends Fragment {
 
     private RecyclerView mCrimeRecyclerView;
     private CrimeAdapter mAdapter;
+    private int modifiedCrimeId;
 
     private class CrimeHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
@@ -30,6 +31,7 @@ public class CrimeListFragment extends Fragment {
         private TextView mDateTextView;
         private CheckBox mSolvedCheckBox;
         private Crime mCrime;
+
 
         public void bindCrime(Crime crime){
             mCrime = crime;
@@ -49,7 +51,8 @@ public class CrimeListFragment extends Fragment {
         @Override
         public void onClick(View view){
             //Toast.makeText(getActivity(),mCrime.getTitle() + " clicked!", Toast.LENGTH_LONG).show();
-            Intent intent = CrimeActivity.newIntent(getActivity(),mCrime.getId());
+            modifiedCrimeId = mCrimeRecyclerView.getChildLayoutPosition(view);
+            Intent intent = CrimePagerActivity.newIntent(getActivity(),mCrime.getId());
             startActivity(intent);
         }
     }
@@ -99,6 +102,7 @@ public class CrimeListFragment extends Fragment {
 
             if (mCrimeRecyclerView.getAdapter() != null)
             {
+                //mCrimeRecyclerView.getAdapter().notifyItemChanged(modifiedCrimeId);
                 mCrimeRecyclerView.getAdapter().notifyDataSetChanged();
             }else {
                 mAdapter = new CrimeAdapter(mCrimes);
