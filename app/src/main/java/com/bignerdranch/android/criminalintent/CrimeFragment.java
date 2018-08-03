@@ -29,6 +29,8 @@ public class CrimeFragment extends Fragment {
     private Button mDateButton;
     private CheckBox mSolvedCheckBox;
     private static final String ARG_CRIME_ID = "crime_id";
+    private static final String DIALOG_DATE = "DialogDate";
+    private static final int REQUEST_DATE = 0;
 
     @Override
     public void onCreate(Bundle savedInstanceState){
@@ -62,8 +64,19 @@ public class CrimeFragment extends Fragment {
 
             }
         });
+
         mDateButton.setText(DateFormat.getDateInstance().format(mCrime.getDate()));
-        mDateButton.setEnabled(false);
+
+        mDateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DatePickerFragment mDatePickerFragment = DatePickerFragment.newInstane(mCrime.getDate());
+
+                //Set CrimeFragment as the target fragment of the DatePickerFragment before showing it
+                mDatePickerFragment.setTargetFragment(CrimeFragment.this,REQUEST_DATE);
+                mDatePickerFragment.show(getFragmentManager(),DIALOG_DATE);
+            }
+        });
         mSolvedCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
