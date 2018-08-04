@@ -1,5 +1,6 @@
 package com.bignerdranch.android.criminalintent;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -16,6 +17,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 
 import java.text.DateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -65,12 +67,12 @@ public class CrimeFragment extends Fragment {
             }
         });
 
-        mDateButton.setText(DateFormat.getDateInstance().format(mCrime.getDate()));
+        updateDate(mCrime.getDate());
 
         mDateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DatePickerFragment mDatePickerFragment = DatePickerFragment.newInstane(mCrime.getDate());
+                DatePickerFragment mDatePickerFragment = DatePickerFragment.newInstance(mCrime.getDate());
 
                 //Set CrimeFragment as the target fragment of the DatePickerFragment before showing it
                 mDatePickerFragment.setTargetFragment(CrimeFragment.this,REQUEST_DATE);
@@ -85,6 +87,23 @@ public class CrimeFragment extends Fragment {
         });
 
         return v;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode,int resultCode ,Intent intent){
+        if(resultCode != Activity.RESULT_OK){
+            return;
+        }
+
+        if(requestCode == REQUEST_DATE){
+            Date date = (Date) intent.getSerializableExtra(DatePickerFragment.EXTRA_DATE);
+            mCrime.setDate(date);
+            updateDate(date);
+        }
+    }
+
+    private void updateDate(Date date) {
+        mDateButton.setText(DateFormat.getDateInstance().format(date));
     }
 
     public static CrimeFragment newInstance(UUID crimeId){
