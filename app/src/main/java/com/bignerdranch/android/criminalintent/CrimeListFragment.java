@@ -5,11 +5,13 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
@@ -28,6 +30,8 @@ public class CrimeListFragment extends Fragment {
     private RecyclerView mCrimeRecyclerView;
     private CrimeAdapter mAdapter;
     private int modifiedCrimeId;
+    private boolean mSubtitleVisible;
+    private static final String SAVED_SUBTITLE_VISIBLE = "subtitle";
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -60,7 +64,6 @@ public class CrimeListFragment extends Fragment {
 
         @Override
         public void onClick(View view){
-            //Toast.makeText(getActivity(),mCrime.getTitle() + " clicked!", Toast.LENGTH_LONG).show();
             modifiedCrimeId = mCrimeRecyclerView.getChildLayoutPosition(view);
             Intent intent = CrimePagerActivity.newIntent(getActivity(),mCrime.getId());
             startActivity(intent);
@@ -96,6 +99,12 @@ public class CrimeListFragment extends Fragment {
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
+
+            //Maintain subtitle state during rotation
+            if(savedInstanceState != null){
+                mSubtitleVisible = savedInstanceState.getBoolean(SAVED_SUBTITLE_VISIBLE);
+            }
+
             View view = inflater.inflate(R.layout.fragment_crime_list,container,false);
 
             mCrimeRecyclerView = (RecyclerView) view.findViewById(R.id.crime_recycler_view);
@@ -118,6 +127,7 @@ public class CrimeListFragment extends Fragment {
                 mAdapter = new CrimeAdapter(mCrimes);
                 mCrimeRecyclerView.setAdapter(mAdapter);
             }
+            updateSubtitle();
         }
 
         @Override
@@ -131,5 +141,61 @@ public class CrimeListFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.fragment_crime_list,menu);
+
+        //Toggle subtitle button text
+        MenuItem subtitleItem = (MenuItem) menu.findItem(R.id.menu_item_show_subtitle);
+        if(mSubtitleVisible){
+            subtitleItem.setTitle(R.string.hide_subtitle);
+        }else{
+            subtitleItem.setTitle(R.string.show_subtitle);
+        }
+
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()){
+
+            //If the new Crime menu item button is clicked
+            case  R.id.menu_item_new_crime:
+                Crime crime = new Crime();
+                CrimeLab.get(getActivity()).addCrime(crime);
+
+                //After a new crime is created and added it is opened in CrimePagerActivity view for editing
+                Intent intent = CrimePagerActivity.newIntent(getActivity(),crime.getId());
+                startActivity(intent);
+                return true;
+
+            case R.id.menu_item_show_subtitle:
+                mSubtitleVisible = !mSubtitleVisible;
+                updateSubtitle();
+                //Make the options menu invalid to be re-created
+                getActivity().invalidateOptionsMenu();
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void updateSubtitle(){
+        CrimeLab crimeLab = CrimeLab.get(getActivity());
+        int crimeCount = crimeLab.getCrimes().size();
+        String subtitle = getString(R.string.subtitle_format,Integer.toString(crimeCount));
+
+        //Toggle Subtitle Visibility
+        if(!mSubtitleVisible){
+            subtitle = null;
+        }
+
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        activity.getSupportActionBar().setSubtitle(subtitle);
+    }
+
+    //Save Subtitle state during rotation
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putBoolean(SAVED_SUBTITLE_VISIBLE,mSubtitleVisible);
+        super.onSaveInstanceState(outState);
     }
 }
