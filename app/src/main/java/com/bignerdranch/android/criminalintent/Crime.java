@@ -40,12 +40,16 @@ public class Crime {
     }
 
     public void setDate(Date mDate) {
-        Calendar calendar = new GregorianCalendar();
-        calendar.setTime(this.mDate);
-        calendar.set(Calendar.YEAR,mDate.getYear());
-        calendar.set(Calendar.MONTH,mDate.getMonth());
-        calendar.set(Calendar.DAY_OF_MONTH,mDate.getDay());
-        this.mDate = calendar.getTime();
+        Calendar newDate = new GregorianCalendar();
+        newDate.setTime(mDate);
+
+        Calendar updatedDate = new GregorianCalendar();
+        updatedDate.setTime(this.mDate);
+
+        updatedDate.set(Calendar.YEAR,newDate.get(Calendar.YEAR));
+        updatedDate.set(Calendar.MONTH,newDate.get(Calendar.MONTH));
+        updatedDate.set(Calendar.DAY_OF_MONTH,newDate.get(Calendar.DAY_OF_MONTH));
+        this.mDate = updatedDate.getTime();
     }
 
     public void setTime(Date mDate){
