@@ -1,6 +1,8 @@
 package com.bignerdranch.android.criminalintent;
 
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.UUID;
 
 /**
@@ -38,7 +40,20 @@ public class Crime {
     }
 
     public void setDate(Date mDate) {
-        this.mDate = mDate;
+        Calendar calendar = new GregorianCalendar();
+        calendar.setTime(this.mDate);
+        calendar.set(Calendar.YEAR,mDate.getYear());
+        calendar.set(Calendar.MONTH,mDate.getMonth());
+        calendar.set(Calendar.DAY_OF_MONTH,mDate.getDay());
+        this.mDate = calendar.getTime();
+    }
+
+    public void setTime(Date mDate){
+        Calendar calendar = new GregorianCalendar();
+        calendar.setTime(this.mDate);
+        calendar.set(Calendar.HOUR,mDate.getHours());
+        calendar.set(Calendar.MINUTE,mDate.getMinutes());
+        this.mDate = calendar.getTime();
     }
 
     public Boolean isSolved() {
