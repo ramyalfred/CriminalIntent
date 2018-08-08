@@ -52,6 +52,7 @@ public class CrimeListFragment extends Fragment {
             mTitleTextView.setText(mCrime.getTitle());
             mDateTextView.setText(mCrime.getDate().toString());
             mSolvedCheckBox.setChecked(mCrime.isSolved());
+            mSolvedCheckBox.setEnabled(false);
         }
 
         public CrimeHolder(View itemView){
@@ -94,6 +95,10 @@ public class CrimeListFragment extends Fragment {
         public int getItemCount(){
             return mCrimes.size();
         }
+
+        public void setCrimes(List<Crime> crimes){
+            mCrimes = crimes;
+        }
     }
 
 
@@ -119,10 +124,11 @@ public class CrimeListFragment extends Fragment {
             CrimeLab crimeLab = CrimeLab.get(getActivity());
             List<Crime> mCrimes = crimeLab.getCrimes();
 
-            if (mCrimeRecyclerView.getAdapter() != null)
+            if (mAdapter != null)
             {
                 //mCrimeRecyclerView.getAdapter().notifyItemChanged(modifiedCrimeId);
-                mCrimeRecyclerView.getAdapter().notifyDataSetChanged();
+                mAdapter.setCrimes(mCrimes);
+                mAdapter.notifyDataSetChanged();
             }else {
                 mAdapter = new CrimeAdapter(mCrimes);
                 mCrimeRecyclerView.setAdapter(mAdapter);

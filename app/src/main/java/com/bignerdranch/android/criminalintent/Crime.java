@@ -14,13 +14,15 @@ public class Crime {
     private UUID mId;
     private String mTitle;
     private Date mDate;
-    private Boolean mSolved;
+    private boolean mSolved;
 
     public Crime(){
-        //Generate Unique ID
-        mId = UUID.randomUUID();
+        this(UUID.randomUUID());
+    }
+
+    public Crime(UUID id){
+        mId = id;
         mDate = new Date();
-        mSolved = false;
     }
 
     public UUID getId() {
