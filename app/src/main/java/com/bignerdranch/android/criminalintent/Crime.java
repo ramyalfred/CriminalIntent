@@ -13,6 +13,7 @@ import java.util.UUID;
 public class Crime {
     private UUID mId;
     private String mTitle;
+    private String mSuspect;
     private Date mDate;
     private boolean mSolved;
 
@@ -35,6 +36,14 @@ public class Crime {
 
     public void setTitle(String mTitle) {
         this.mTitle = mTitle;
+    }
+
+    public String getSuspect() {
+        return mSuspect;
+    }
+
+    public void setSuspect(String mSuspect) {
+        this.mSuspect = mSuspect;
     }
 
     public Date getDate() {
