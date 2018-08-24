@@ -1,6 +1,7 @@
 package com.bignerdranch.android.criminalintent;
 
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -41,6 +42,7 @@ public class CrimeFragment extends Fragment {
     private CheckBox mSolvedCheckBox;
     private Button mSendReportButton;
     private Button mChooseSuspect;
+    private Button mCallSuspect;
     private static final String ARG_CRIME_ID = "crime_id";
     private static final String DIALOG_DATE = "DialogDate";
     private static final String DIALOG_TIME = "DialogTime";
@@ -66,6 +68,7 @@ public class CrimeFragment extends Fragment {
         mDeleteButton = (Button) v.findViewById(R.id.delete_crime);
         mSendReportButton = (Button) v.findViewById(R.id.report_crime);
         mChooseSuspect = (Button) v.findViewById(R.id.pick_crime_suspect);
+        mCallSuspect = (Button) v.findViewById(R.id.call_crime_suspect);
 
         //Creating Intent for launching contacts app
         final Intent pickContact = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
@@ -148,8 +151,35 @@ public class CrimeFragment extends Fragment {
             }
         });
 
+        mCallSuspect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                //Query the Phone table for the contact with the display name matching the suspect name
+                String[] projection = new String[] {ContactsContract.CommonDataKinds.Phone.NUMBER};
+                String selection = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " = ?";
+                String[] selectionArgument = new String[] {mCrime.getSuspect()};
+
+                Cursor cursor1 = getContext().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,projection,selection,selectionArgument,null);
+
+                try{
+                    if (cursor1.getCount() != 0){
+                        cursor1.moveToFirst();
+                        Uri number = Uri.parse("tel:"+cursor1.getString(0));
+
+                        //Dialing the number of the suspect
+                        startActivity(new Intent(Intent.ACTION_DIAL,number));
+                    }
+                }finally {
+                    cursor1.close();
+                }
+            }
+        });
+
         if(mCrime.getSuspect() != null){
             mChooseSuspect.setText(mCrime.getSuspect());
+        }else{
+            mCallSuspect.setEnabled(false);
         }
 
         return v;
