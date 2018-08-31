@@ -1,14 +1,18 @@
 package com.bignerdranch.android.criminalintent;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.ShareCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v4.view.LayoutInflaterCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -21,7 +25,11 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.Toast;
 
+import java.io.File;
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -43,12 +51,16 @@ public class CrimeFragment extends Fragment {
     private Button mSendReportButton;
     private Button mChooseSuspect;
     private Button mCallSuspect;
+    private ImageButton mPhotoButton;
+    private ImageView mPhotoView;
+    private File mPhotoFile;
     private static final String ARG_CRIME_ID = "crime_id";
     private static final String DIALOG_DATE = "DialogDate";
     private static final String DIALOG_TIME = "DialogTime";
     private static final int REQUEST_DATE = 0;
     private static final int REQUEST_TIME = 1;
     private static final int REQUEST_CONTACT = 2;
+    private static final int REQUEST_PHOTO = 3;
 
 
     @Override
@@ -56,6 +68,9 @@ public class CrimeFragment extends Fragment {
         super.onCreate(savedInstanceState);
         UUID crimeId = (UUID) this.getArguments().getSerializable(ARG_CRIME_ID);
         mCrime = CrimeLab.get(getActivity()).getCrime(crimeId);
+
+        //Stashing the location of the photo file
+        mPhotoFile = CrimeLab.get(getActivity()).getPhotoFile(mCrime);
     }
 
     @Override
@@ -69,9 +84,18 @@ public class CrimeFragment extends Fragment {
         mSendReportButton = (Button) v.findViewById(R.id.report_crime);
         mChooseSuspect = (Button) v.findViewById(R.id.pick_crime_suspect);
         mCallSuspect = (Button) v.findViewById(R.id.call_crime_suspect);
+        mPhotoButton = (ImageButton) v.findViewById(R.id.crime_camera);
+        mPhotoView = (ImageView) v.findViewById(R.id.crime_photo);
 
         //Creating Intent for launching contacts app
         final Intent pickContact = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+
+        //Creating intent for launching camera
+        final Intent captureImage = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+        //Boolean for allowing take photo button or not depending on availability of camera and storage
+        boolean canTakePhoto = mPhotoFile != null && captureImage.resolveActivity(getActivity().getPackageManager()) != null;
+        mPhotoButton.setEnabled(canTakePhoto);
 
         mTitleField.setText(mCrime.getTitle());
         mSolvedCheckBox.setChecked(mCrime.isSolved());
@@ -176,11 +200,36 @@ public class CrimeFragment extends Fragment {
             }
         });
 
+        if(canTakePhoto){
+            Uri uri = FileProvider.getUriForFile(getContext(),getContext().getApplicationContext().getPackageName() + ".provider",mPhotoFile);
+            //captureImage.setDataAndType(uri,"image/jpeg");
+            captureImage.putExtra(MediaStore.EXTRA_OUTPUT,uri);
+            captureImage.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            }
+
+        mPhotoButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                try{
+                    startActivityForResult(captureImage, REQUEST_PHOTO);
+                }catch(ActivityNotFoundException e){
+                    Toast.makeText(getActivity(),e.getMessage().toString(),Toast.LENGTH_LONG).show();
+                }
+
+
+            }
+        });
+
+        //If there is no suspect set, disable call button
         if(mCrime.getSuspect() != null){
             mChooseSuspect.setText(mCrime.getSuspect());
         }else{
             mCallSuspect.setEnabled(false);
         }
+
+        //Update crime photo with te photo taken
+        updatePhotoView();
 
         return v;
     }
@@ -216,6 +265,8 @@ public class CrimeFragment extends Fragment {
             }finally {
                 c.close();
             }
+        }else if(requestCode == REQUEST_PHOTO){
+            updatePhotoView();
         }
     }
 
@@ -263,5 +314,14 @@ public class CrimeFragment extends Fragment {
 
         String report = getString(R.string.crime_report, mCrime.getTitle(), dateString, solvedString, suspect);
         return report;
+    }
+
+    private void updatePhotoView(){
+        if(mPhotoFile == null || !mPhotoFile.exists()){
+            mPhotoView.setImageDrawable(null);
+        }else{
+            Bitmap bitmap = PictureUtils.getScaledBitmap(mPhotoFile.getPath(),getActivity());
+            mPhotoView.setImageBitmap(bitmap);
+        }
     }
 }
